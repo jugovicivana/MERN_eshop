@@ -1,1 +1,1 @@
-# MERN_course
+# MERN_eshop
