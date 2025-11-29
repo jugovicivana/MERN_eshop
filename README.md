@@ -2,12 +2,13 @@
 MERN Shop je cross-platform mobilna e-commerce aplikacija za Android i iOS, razvijena pomoću MERN stack tehnologija i React Native-a. Aplikacija omogućava korisnicima kupovinu proizvoda, upravljanje korpom i narudžbama, dok administratori imaju potpunu kontrolu nad proizvodima, korisnicima i porudžbinama. Projekat je realizovan kao real-world aplikacija, kroz praktično učenje i razvoj kompletne full-stack mobilne aplikacije – od dizajna interfejsa do backend API-ja i baze podataka u oblaku.
 
 ## Tehnologije
-*Backend*: Node.js, Express.js 
-*Frontend*: React Native
-*Autentifikacija*: JWT (JSON Web Token)
-*Baza podataka*: MongoDB (Cloud baza)
+*Backend*: Node.js, Express.js  
+*Frontend*: React Native   
+*Autentifikacija*: JWT (JSON Web Token)   
+*Baza podataka*: MongoDB (Cloud baza)   
 
 ## Ključne funkcionalnosti  
+
 ### Proizvodi
 - Prikaz svih proizvoda
 - Detaljan prikaz proizvoda
@@ -42,6 +43,9 @@ MERN Shop je cross-platform mobilna e-commerce aplikacija za Android i iOS, razv
 ### Frontend:
 - Potrebno je otvoriti frontend direktorijum, pa instalirati zavisnosti pomoću komande *npm install*
 - Pokrenuti aplikaciju koristeći komandu *npm start*.
+
+## Testiranje na fizičkom uređaju (Android / iOS)
+Aplikacija je testirana i pokretana direktno na fizičkom mobilnom telefonu (Android). Tokom razvoja korišćeno je povezivanje telefona sa računarom putem USB kabla, pri čemu se aplikacija automatski instalira i pokreće kroz Expo Go aplikaciju. Na ovaj način omogućeno je realno testiranje performansi, navigacije i korisničkog interfejsa na stvarnom uređaju.
  
-## Autori
+## Autor
 Ivana Jugović – *jugovicivana12@gmail.com*  
