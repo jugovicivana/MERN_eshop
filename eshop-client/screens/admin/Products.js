@@ -95,7 +95,7 @@ const Products = (props) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        const products = productFilter.filter((item) => item.id !== id);
+        const products = productFilter.filter((item) => item._id !== id);
         setProductFilter(products);
       })
       .catch((error) => console.log(error));

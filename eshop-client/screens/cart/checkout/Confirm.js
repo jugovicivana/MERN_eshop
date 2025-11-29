@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Dimensions, ScrollView } from "react-native";
 import {
   Appbar,
@@ -12,16 +12,74 @@ import {
 import { useDispatch } from "react-redux";
 import { clearCart } from "../../../redux/slices/cartSlice";
 import EasyButton from "../../../shared/StyledComponents/EasyButton";
+import Toast from "react-native-toast-message";
+import axios from "axios";
+import baseURL from "../../../assets/common/baseUrl";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 var { width, height } = Dimensions.get("window");
 const Confirm = (props) => {
   const confirm = props.route.params;
   const dispatch = useDispatch();
+  const [token, setToken] = useState();
+
+  // console.log("*************")
+  // console.log(confirm.order.order);
+
+  useEffect(() => {
+    AsyncStorage.getItem("jwt")
+      .then((res) => {
+        setToken(res);
+      })
+      .catch((err) => console.log(err));
+  }, []);
+
   const confirmOrder = () => {
-    setTimeout(() => {
-      dispatch(clearCart());
-      props.navigation.navigate("Cart");
-    }, 1000);
+    if (!token) {
+      Toast.show({
+        topOffset: 60,
+        type: "error",
+        text1: "Not authorized",
+        text2: "Please log in again",
+      });
+      return;
+    }
+
+    const order = confirm.order.order;
+
+    console.log(order);
+
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    axios
+      .post(`${baseURL}orders`, order, config)
+      .then((res) => {
+        if (res.status == 200 || res.status == 201) {
+          Toast.show({
+            topOffset: 60,
+            type: "success",
+            text1: "Order Completed",
+            text2: "",
+          });
+
+          setTimeout(() => {
+            dispatch(clearCart());
+            props.navigation.navigate("Cart");
+          }, 1000);
+        }
+      })
+      .catch((err) =>
+        Toast.show({
+          topOffset: 60,
+          type: "error",
+          text1: "Something went wrong",
+          text2: "Please try again",
+        })
+      );
   };
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -50,7 +108,12 @@ const Confirm = (props) => {
                     style={styles.image}
                   />
                   <View style={styles.textContainer}>
-                    <Text variant="titleMedium">{x.product.name}</Text>
+                    <Text
+                      variant="titleMedium"
+                      style={{ flexWrap: "wrap", flexShrink: 1 }}
+                    >
+                      {x.product.name}
+                    </Text>
                     <Text variant="bodyMedium">{x.quantity}</Text>
                     <Text variant="bodySmall">${x.product.price}</Text>
                   </View>
@@ -59,7 +122,7 @@ const Confirm = (props) => {
             })}
           </View>
         ) : null}
-        <View style={{ alignItems: "center", margin: 20, width:'100%' }}>
+        <View style={{ alignItems: "center", margin: 20, width: "100%" }}>
           <EasyButton secondary large onPress={() => confirmOrder()}>
             <Text style={{ color: "white" }}>Place Order</Text>
           </EasyButton>
@@ -99,6 +162,11 @@ const styles = StyleSheet.create({
     // borderRadius: 8,
     // marginRight: 10,
     marginRight: 10,
+  },
+  textContainer: {
+    flex: 1,
+    flexDirection: "column", // ili row, zavisno šta želiš
+    maxWidth: "100%",
   },
 });
 export default Confirm;

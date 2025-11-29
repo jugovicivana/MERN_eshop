@@ -8,10 +8,12 @@ import {
   Button,
   ActivityIndicator,
 } from "react-native-paper";
+import OrderCard from "../../shared/OrderCard";
+
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../../context/AuthContext";
-
+import EasyButton from "../../shared/StyledComponents/EasyButton";
 import axios from "axios";
 import baseURL from "../../assets/common/baseUrl";
 
@@ -21,43 +23,56 @@ const UserProfile = (props) => {
   const { stateUser, dispatch } = useAuth();
   const [userProfile, setUserProfile] = useState();
   const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState();
 
-  useEffect(() => {
-    if (
-      stateUser.isAuthenticated === false ||
-      stateUser.isAuthenticated === null
-    ) {
-      props.navigation.navigate("Login");
-    }
-
-    setLoading(true);
-    AsyncStorage.getItem("jwt")
-      .then((res) => {
-        axios
-          .get(`${baseURL}users/${stateUser.user.userId}`, {
-            headers: { Authorization: `Bearer ${res}` },
-          })
-          .then((response) => {
-            setUserProfile(response.data);
-            setLoading(false);
-          });
-      })
-      .catch((error) => {
-        console.log(error);
-        setLoading(false);
-      });
-
-    return () => {
-      setUserProfile();
+  useFocusEffect(
+    useCallback(() => {
       setLoading(true);
-    };
-  }, [stateUser.isAuthenticated]);
+
+      if (stateUser.isAuthenticated === false) {
+        props.navigation.navigate("Login");
+        return;
+      }
+
+      AsyncStorage.getItem("jwt")
+        .then((res) => {
+          axios
+            .get(`${baseURL}users/${stateUser.user.userId}`, {
+              headers: { Authorization: `Bearer ${res}` },
+            })
+            .then((user) => {
+              setUserProfile(user.data);
+              setLoading(false);
+            });
+        })
+        .catch((error) => {
+          console.log(error);
+          setLoading(false);
+        });
+
+      axios
+        .get(`${baseURL}orders/`)
+        .then((res) => {
+          const data = res.data;
+          const userOrders = data.filter(
+            (order) => order.user._id === stateUser.user.userId
+          );
+          setOrders(userOrders);
+        })
+        .catch((err) => console.log(err));
+
+      return () => {
+        setUserProfile();
+        setOrders();
+      };
+    }, [stateUser.isAuthenticated])
+  );
 
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator animating={true} size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Loading your profile...</Text>
+        {/* <Text style={styles.loadingText}>Loading your profile...</Text> */}
       </View>
     );
   }
@@ -76,15 +91,30 @@ const UserProfile = (props) => {
           </Text>
         </View>
         <View style={{ marginTop: 80 }}>
-          <Button
-            mode="contained-tonal"
+          <EasyButton
+            large
+            danger
             onPress={() => {
               AsyncStorage.removeItem("jwt");
               logoutUser(dispatch);
             }}
           >
-            Sign Out
-          </Button>
+            <Text style={{ color: "white" }}>Sign Out</Text>
+          </EasyButton>
+        </View>
+        <View style={styles.order}>
+          <Text style={{ fontSize: 20 }}>My Orders</Text>
+          <View style={{}}>
+            {orders && orders.length > 0 ? (
+              orders.map((x) => {
+                return <OrderCard key={x._id} {...x} />;
+              })
+            ) : (
+              <View style={styles.order}>
+                <Text>You have no orders!</Text>
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -94,23 +124,30 @@ const UserProfile = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:'white',
+    backgroundColor: "white",
     alignItems: "center",
   },
   subContainer: {
     alignItems: "center",
     marginTop: 60,
+    backgroundColor:'white'
   },
-   loadingContainer: {
+  loadingContainer: {
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor:'white'
+    backgroundColor: "white",
   },
   loadingText: {
     marginTop: 20,
     fontSize: 16,
     color: "#666",
   },
+   order:{
+    marginTop:20,
+    alignItems:'center',
+    marginBottom:60,
+    
+  }
 });
 
 export default UserProfile;

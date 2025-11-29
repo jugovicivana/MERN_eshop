@@ -166,7 +166,7 @@ const ProductForm = (props) => {
 
     if (item !== null) {
       axios
-        .put(`${baseURL}products/${item.id}`, formData, config)
+        .put(`${baseURL}products/${item._id}`, formData, config)
          .then((res) => {
           setLoading(false); 
 

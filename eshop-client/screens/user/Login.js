@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View, StyleSheet, Dimensions, ActivityIndicator } from "react-native";
 import FormContainer from "../../shared/form/FormContainer";
 import Input from "../../shared/form/Input";
 import Error from "../../shared/Error";
@@ -14,11 +14,24 @@ const Login = (props) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { stateUser, dispatch } = useAuth();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (stateUser.isAuthenticated === true) {
-      props.navigation.navigate("User Profile");
-    }
+    const checkAuth = async () => {
+      setLoading(true);
+
+      try {
+        if (stateUser.isAuthenticated === true) {
+          props.navigation.navigate("User Profile");
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, [stateUser.isAuthenticated]);
 
   const handleSubmit = () => {
@@ -34,6 +47,14 @@ const Login = (props) => {
       loginUser(user, dispatch);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator animating={true} size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: "white" }}>
@@ -95,6 +116,16 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: "#6D94C5", // Boja teksta
+  },
+  subContainer: {
+    alignItems: "center",
+    marginTop: 60,
+    backgroundColor: "white",
+  },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
   },
 });
 

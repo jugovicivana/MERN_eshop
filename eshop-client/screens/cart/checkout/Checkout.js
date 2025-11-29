@@ -9,12 +9,19 @@ import { Dropdown } from "react-native-element-dropdown";
 import EasyButton from "../../../shared/StyledComponents/EasyButton";
 import { Text } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux"; //da imamo pristup store-u
+import { useAuth } from "../../../context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import baseURL from "../../../assets/common/baseUrl";
+
 
 var { height, width } = Dimensions.get("window");
 
 const countries = require("../../../assets/data/countries.json");
 
 const Checkout = (props) => {
+  const { stateUser, dispatch } = useAuth();
+
   const [orderItems, setOrderItems] = useState();
   const [address, setAddress] = useState();
   const [address2, setAddress2] = useState();
@@ -22,6 +29,8 @@ const Checkout = (props) => {
   const [zipCode, setZipCode] = useState();
   const [country, setCountry] = useState();
   const [phone, setPhone] = useState();
+  const [user, setUser] = useState();
+  const [token, setToken] = useState();
 
   const data = countries.map((c) => ({
     label: c.name,
@@ -29,6 +38,22 @@ const Checkout = (props) => {
   }));
 
   useEffect(() => {
+    AsyncStorage.getItem("jwt")
+      .then((res) => setToken(res))
+      .catch((err) => console.log(err));
+
+    const config = {
+      header: {
+        Authorization: `Bearer ${token}`,
+      },
+    };
+
+    axios
+    .get(`${baseURL}users/${stateUser.user.userId}`, config)
+    .then((res)=>setUser(res.data))
+    .catch((err)=>console.log(err));
+
+
     setOrderItems(props.route?.params?.cartItems);
     return () => {
       setOrderItems();
@@ -43,6 +68,8 @@ const Checkout = (props) => {
       phone,
       shippingAddress1: address,
       shippingAddress2: address2,
+      // status: "Pending",
+      user,
       zip: zipCode,
     };
 
@@ -54,11 +81,10 @@ const Checkout = (props) => {
       viewIsInsideTabBar={true}
       extraHeight={200}
       enableOnAndroid={true}
-      style={{ backgroundColor: "white", width:'100%' }}
+      style={{ backgroundColor: "white", width: "100%" }}
     >
-        <FormContainer title={"Shipping Address"}>
-                  <View style={styles.label}>
-          
+      <FormContainer title={"Shipping Address"}>
+        <View style={styles.label}>
           <Input
             placeholder={"Phone"}
             name={"phone"}
@@ -66,36 +92,32 @@ const Checkout = (props) => {
             keyboardType={"numeric"}
             onChangeText={(text) => setPhone(text)}
           />
-          </View>
-                  <View style={styles.label}>
-          
+        </View>
+        <View style={styles.label}>
           <Input
             placeholder={"Shipping Address 1"}
             name={"ShippingAddress1"}
             value={address}
             onChangeText={(text) => setAddress(text)}
           />
-          </View>
-                  <View style={styles.label}>
-          
+        </View>
+        <View style={styles.label}>
           <Input
             placeholder={"Shipping Address 2"}
             name={"ShippingAddress2"}
             value={address2}
             onChangeText={(text) => setAddress2(text)}
           />
-          </View>
-                  <View style={styles.label}>
-          
+        </View>
+        <View style={styles.label}>
           <Input
             placeholder={"City"}
             name={"City"}
             value={city}
             onChangeText={(text) => setCity(text)}
           />
-          </View>
-                  <View style={styles.label}>
-          
+        </View>
+        <View style={styles.label}>
           <Input
             placeholder={"Zip Code"}
             name={"ZipCode"}
@@ -103,9 +125,8 @@ const Checkout = (props) => {
             keyboardType={"numeric"}
             onChangeText={(text) => setZipCode(text)}
           />
-          </View>
-                  <View style={styles.label}>
-          
+        </View>
+        <View style={styles.label}>
           <Dropdown
             style={styles.dropdown}
             placeholderStyle={styles.placeholderStyle}
@@ -119,15 +140,13 @@ const Checkout = (props) => {
             onChange={(item) => setCountry(item.value)}
             containerStyle={{ marginBottom: 20 }}
           />
-          </View>
-          <View
-            style={{ width: "80%", alignItems: "center", marginBottom: 80 }}
-          >
-            <EasyButton medium secondary onPress={() => checkout()}>
-              <Text style={{ color: "white" }}>Confirm</Text>
-            </EasyButton>
-          </View>
-        </FormContainer>
+        </View>
+        <View style={{ width: "80%", alignItems: "center", marginBottom: 80 }}>
+          <EasyButton medium secondary onPress={() => checkout()}>
+            <Text style={{ color: "white" }}>Confirm</Text>
+          </EasyButton>
+        </View>
+      </FormContainer>
     </KeyboardAwareScrollView>
   );
 };
@@ -159,7 +178,7 @@ const styles = StyleSheet.create({
   placeholderStyle: { color: "#999", fontSize: 14 },
   selectedTextStyle: { color: "#000", fontSize: 14 },
   inputSelect: { color: "#000", fontSize: 14 },
-   label: {
+  label: {
     width: "80%",
     marginTop: 10,
   },

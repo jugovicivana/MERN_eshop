@@ -70,6 +70,9 @@ router.post("/", async (req, res) => {
     user: req.body.user,
   });
 
+  console.log(order);
+  
+
   order = await order.save();
 
   if (!order) {

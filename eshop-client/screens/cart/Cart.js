@@ -1,24 +1,23 @@
 import React from "react";
-import { Text, Button } from "react-native-paper";
-import {
-  View,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import { Text } from "react-native-paper";
+import { View, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { useDispatch, useSelector } from "react-redux";
 import { clearCart, removeFromCart } from "../../redux/slices/cartSlice";
 import CartItem from "./CartItem";
 import EasyButton from "../../shared/StyledComponents/EasyButton";
+import { useAuth } from "../../context/AuthContext";
 
 var { height, width } = Dimensions.get("window");
 
 const Cart = (props) => {
   const cartItems = useSelector((state) => state.cartItems.items);
-  const dispatch = useDispatch();
+  const dispatchUse = useDispatch();
+
+  const { stateUser, dispatch } = useAuth();
+
+  console.log(stateUser);
 
   var total = 0;
   cartItems.forEach((element) => {
@@ -26,7 +25,7 @@ const Cart = (props) => {
   });
 
   const handleDelete = (item) => {
-    dispatch(removeFromCart(item.product._id));
+    dispatchUse(removeFromCart(item.product._id));
   };
 
   return (
@@ -46,7 +45,7 @@ const Cart = (props) => {
                 <View style={styles.hiddenItem}>
                   <TouchableOpacity
                     onPress={() => {
-                      dispatch(removeFromCart(item.product._id.$oid));
+                      dispatchUse(removeFromCart(item.product._id.$oid));
                     }}
                     style={styles.deleteButton}
                   >
@@ -68,21 +67,40 @@ const Cart = (props) => {
           <View style={styles.bottomContainer}>
             <Text style={styles.price}>${total.toFixed(2)}</Text>
             <View style={styles.buttonsContainer}>
-              <EasyButton danger medium onPress={() => dispatch(clearCart())}>
+              <EasyButton
+                danger
+                medium
+                onPress={() => dispatchUse(clearCart())}
+              >
                 <Text style={{ color: "white" }}> Clear Cart</Text>
               </EasyButton>
-              <EasyButton
-                medium
-                primary
-                onPress={() => {
-                  props.navigation.navigate("Checkout", {
-                    screen: "Shipping",
-                    params: { cartItems: cartItems },
-                  });
-                }}
-              >
-                <Text style={{ color: "white" }}> Checkout</Text>
-              </EasyButton>
+
+              {stateUser.isAuthenticated ? (
+                <EasyButton
+                  medium
+                  primary
+                  onPress={() => {
+                    props.navigation.navigate("Checkout", {
+                      screen: "Shipping",
+                      params: { cartItems: cartItems },
+                    });
+                  }}
+                >
+                  <Text style={{ color: "white" }}> Checkout</Text>
+                </EasyButton>
+              ) : (
+                <EasyButton
+                  medium
+                  secondary
+                  onPress={() => {
+                    props.navigation.navigate("User", {
+                      screen: "Login",
+                    });
+                  }}
+                >
+                  <Text style={{ color: "white" }}> Login</Text>
+                </EasyButton>
+              )}
             </View>
           </View>
         </>
